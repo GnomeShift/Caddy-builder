@@ -1,4 +1,4 @@
-name: 'Build custom Caddy Docker image'
+name: Build custom Caddy Docker image
 
 on:
   workflow_dispatch:
@@ -11,9 +11,6 @@ on:
         description: 'Docker image name'
         required: true
         default: 'caddy'
-
-env:
-  DOCKER_IMAGE: ${{ vars.DOCKERHUB_LOGIN }}/${{ github.event.inputs.docker_image_name }}
 
 jobs:
   build-and-push:
@@ -36,11 +33,19 @@ jobs:
           echo "CADDY_VERSION_TAG=${VERSION}" >> $GITHUB_ENV
           echo "CADDY_VERSION_FULL=${LATEST_TAG}" >> $GITHUB_ENV
 
+      - name: 'Set image name'
+        run: |
+          echo "DOCKER_IMAGE=${{ vars.DOCKERHUB_LOGIN }}/${{ github.event.inputs.docker_image_name }}" >> $GITHUB_ENV
+
+      - name: 'Set image tags'
+        run: |
+          IMAGE="${{ vars.DOCKERHUB_LOGIN }}/${{ github.event.inputs.docker_image_name }}"
+          echo "DOCKER_TAGS=${IMAGE}:${{ env.CADDY_VERSION_TAG }}-alpine,${IMAGE}:latest" >> $GITHUB_ENV
+
       - name: 'Setup QEMU'
         uses: docker/setup-qemu-action@v3
 
       - name: 'Setup Docker Buildx'
-        id: buildx
         uses: docker/setup-buildx-action@v3
 
       - name: 'Login to Docker Hub'
@@ -49,23 +54,13 @@ jobs:
           username: ${{ vars.DOCKERHUB_LOGIN }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: 'Extract metadata'
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.DOCKER_IMAGE }}
-          tags: |
-            type=raw,value=${{ env.CADDY_VERSION_TAG }}-alpine
-            type=raw,value=latest
-
       - name: 'Build and push Caddy image'
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.DOCKER_TAGS }}
           platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -80,9 +75,9 @@ jobs:
           echo "- **Caddy version:** \`${{ env.CADDY_VERSION_FULL }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Image:** \`${{ env.DOCKER_IMAGE }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Tags:**" >> $GITHUB_STEP_SUMMARY
-          echo "  - \`${{ env.DOCKER_IMAGE }}:${{ env.CADDY_VERSION_TAG }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "  - \`${{ env.DOCKER_IMAGE }}:${{ env.CADDY_VERSION_TAG }}-alpine\`" >> $GITHUB_STEP_SUMMARY
           echo "  - \`${{ env.DOCKER_IMAGE }}:latest\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Modules Included:**" >> $GITHUB_STEP_SUMMARY
+          echo "- **Modules included:**" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           echo "${{ github.event.inputs.caddy_modules }}" | sed 's/ /\n/g' >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
