@@ -6,7 +6,7 @@ on:
       caddy_modules:
         description: 'Caddy modules to include (space-separated)'
         required: true
-        default: 'github.com/caddy-dns/cloudflare github.com/greenpau/caddy-security github.com/mholt/caddy-l4/layer4'
+        default: 'github.com/caddy-dns/cloudflare github.com/greenpau/caddy-security github.com/mholt/caddy-l4'
       docker_image_name:
         description: 'Docker image name'
         required: true
