@@ -19,7 +19,7 @@ Pipeline for custom [Caddy](https://caddyserver.com/)-alpine Docker images build
 1. Add secret `DOCKERHUB_PASSWORD` and variable `DOCKERHUB_LOGIN` on the `Settings` -> `Secrets and variables` -> `Actions` tab.
 2. Start pipeline via GitHub Actions.
 3. Specify build params (optional):
-   - Caddy modules to include (space-separated, default: `github.com/caddy-dns/cloudflare github.com/greenpau/caddy-security github.com/mholt/caddy-l4/layer4`).
+   - Caddy modules to include (space-separated, default: `github.com/caddy-dns/cloudflare github.com/greenpau/caddy-security github.com/mholt/caddy-l4`).
    - Docker image name (default: caddy).
 4. Click on `Run workflow` button.
 5. Done! You can view build summary on the pipeline page.
